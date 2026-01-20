@@ -117,46 +117,46 @@ double D0_AWGN(double SNR) {
 }
 
 
-int main() {
-    std::ofstream outputFile("pb_teor_my.txt");
+// int main() {
+//     std::ofstream outputFile("pb_teor_my.txt");
     
-    if (!outputFile.is_open()) {
-        std::cout << "Ошибка при открытии файла" << std::endl;
-        return 1;
-    }
+//     if (!outputFile.is_open()) {
+//         std::cout << "Ошибка при открытии файла" << std::endl;
+//         return 1;
+//     }
     
-    std::vector<int> w2_5 = {1, 4, 12, 32, 80};
-    std::vector<int> w2_5_pe = {1, 2, 4, 8, 16};
-    std::vector<int> w3_6 = {2, 7, 18, 49, 130};
-    std::vector<int> w4_7 = {4, 12, 20, 72, 225};
-    std::vector<int> w5_8 = {2, 36, 32, 62, 332};
-    std::vector<int> w6_10 = {36, 0, 211, 0, 1404};
-    std::vector<int> w7_10 = {2, 22, 60, 148, 340};
-    std::vector<int> w8_12 = {33, 0, 281, 0, 2179};
+//     std::vector<int> w2_5 = {1, 4, 12, 32, 80};
+//     std::vector<int> w2_5_pe = {1, 2, 4, 8, 16};
+//     std::vector<int> w3_6 = {2, 7, 18, 49, 130};
+//     std::vector<int> w4_7 = {4, 12, 20, 72, 225};
+//     std::vector<int> w5_8 = {2, 36, 32, 62, 332};
+//     std::vector<int> w6_10 = {36, 0, 211, 0, 1404};
+//     std::vector<int> w7_10 = {2, 22, 60, 148, 340};
+//     std::vector<int> w8_12 = {33, 0, 281, 0, 2179};
 
     
-    double SNR0 = 2;
-    double SNR_step = 0.5;
-    double SNR_max = 7;
-    int k0 = 1;
-    int L = 500;
-    outputFile << "v = 200\n";
-    for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-        outputFile << "SNR = " << SNR << " pb = " << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
-    }
-    outputFile << "v = 201\n";
-    for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-        outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
-    }
+//     double SNR0 = 2;
+//     double SNR_step = 0.5;
+//     double SNR_max = 7;
+//     int k0 = 1;
+//     int L = 500;
+//     outputFile << "v = 200\n";
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         outputFile << "SNR = " << SNR << " pb = " << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
+//     }
+//     outputFile << "v = 201\n";
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+//     }
 
-    outputFile << "v = 2000\n";
-    for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-        outputFile << "SNR = " << SNR << " pb = " << pb_Q_BSC(k0, 5, w2_5, 0.5, SNR) << "\n";
-    }
-    outputFile << "v = 2001\n";
-    for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-        outputFile << "SNR = " << SNR << " pb = " << pe_Q_BSC(L, 5, w2_5_pe, 0.5, SNR) << "\n";
-    }
+//     outputFile << "v = 2000\n";
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         outputFile << "SNR = " << SNR << " pb = " << pb_Q_BSC(k0, 5, w2_5, 0.5, SNR) << "\n";
+//     }
+//     outputFile << "v = 2001\n";
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         outputFile << "SNR = " << SNR << " pb = " << pe_Q_BSC(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+//     }
 
     // outputFile << "v = 210\n";
     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
@@ -212,4 +212,4 @@ int main() {
     //     outputFile << "SNR = " << SNR << " pb = " << p << "\n";
     // }
 
-}
+// }
