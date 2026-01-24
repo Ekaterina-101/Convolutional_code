@@ -1,4 +1,5 @@
 #include "modem.hpp"
+#include "noise.hpp"
 
 std::vector<std::complex<double>> QPSKmod(const std::vector<int>& input_bits) {
     size_t length = input_bits.size() / 2;
@@ -37,6 +38,30 @@ std::vector<int> QPSKdemod(const std::vector<std::complex<double>>& input_signal
         } else {
             output_bits[2 * i + 1] = 1;
         }
+    }
+
+    return output_bits;
+}
+
+double calculateLLR(double SNR_dB, double min_dist_difference) {
+    double SNR = std::pow(10.0, SNR_dB/10.0);
+    double σ² = 1.0 / (2 * SNR);
+    double result = -1.0 / (2 * σ²) * min_dist_difference;
+    return result;
+}
+
+std::vector<double> QPSKdemod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR) {
+    size_t length = input_signal.size();
+    std::vector<double> output_bits(length * 2);
+
+    for (size_t i = 0; i < length; i++) {
+        double d00 = std::norm(input_signal[i] - std::complex<double>(1.0, 1.0));
+        double d10 = std::norm(input_signal[i] - std::complex<double>(-1.0, 1.0));
+        double d01 = std::norm(input_signal[i] - std::complex<double>(1.0, -1.0));
+        double d11 = std::norm(input_signal[i] - std::complex<double>(-1.0, -1.0));
+
+        output_bits[2 * i] = calculateLLR(SNR, std::min(d00, d01) - std::min(d10, d11));
+        output_bits[2 * i + 1] = calculateLLR(SNR, std::min(d00, d10) - std::min(d01, d11));
     }
 
     return output_bits;

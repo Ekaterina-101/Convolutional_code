@@ -23,13 +23,15 @@ double pb_Q_AWGN(int k0, int d, std::vector<int>& w, double R, double SNR) {
 double pe_Q_AWGN(int L, int d, std::vector<int>& w, double R, double SNR) {
     std::vector<double> pj;
     for (int j = d; j <= (d + 4); j++) {
+        // std::cout << "pw" << j << " = " << Q(std::sqrt(2.0 * R * double(j) * (std::pow(10, SNR/10.0)))) << "\n";
         pj.push_back(Q(std::sqrt(2.0 * R * double(j) * (std::pow(10, SNR/10.0)))));
     }
     double p = 0.0;
     for (int i = 0; i < w.size(); i++) {
         p += double(w[i]) * pj[i];
+        // std::cout << "p" << i << " = " << p << "\n";
     }
-    return p*double(L);
+    return p * double(L);
 }
 
 long long binomialCoefficient(int n, int k) {
@@ -92,11 +94,13 @@ double pb_Q_BSC(int k0, int d, std::vector<int>& w, double R, double SNR) {
 double pe_Q_BSC(int L, int d, std::vector<int>& w, double R, double SNR) {
     std::vector<double> pj;
     for (int j = d; j <= (d + 4); j++) {
+        // std::cout << "p = " << p_SNR_BSC(R, SNR) << " pw = " << pw_BSC(j, p_SNR_BSC(R, SNR)) << "\n";
         pj.push_back(pw_BSC(j, p_SNR_BSC(R, SNR)));
     }
     double p = 0.0;
     for (int i = 0; i < w.size(); i++) {
         p += double(w[i]) * pj[i];
+        // std::cout << "pe" << i << " = " << p << "\n";
     }
     return p * double(L);
 }
@@ -135,28 +139,40 @@ double D0_AWGN(double SNR) {
 //     std::vector<int> w8_12 = {33, 0, 281, 0, 2179};
 
     
-//     double SNR0 = 2;
-//     double SNR_step = 0.5;
-//     double SNR_max = 7;
-//     int k0 = 1;
-//     int L = 500;
-//     outputFile << "v = 200\n";
-//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//         outputFile << "SNR = " << SNR << " pb = " << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
-//     }
-//     outputFile << "v = 201\n";
-//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//         outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
-//     }
+///////////////////
+    // double SNR0 = 2;
+    // double SNR_step = 0.1;
+    // double SNR_max = 5.5;
+    // int k0 = 1;
+    // int L = 500;
+    // outputFile << "v = 0\n";
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) <= 1) {
+    //         outputFile << "SNR = " << SNR << " pb = " << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
 
-//     outputFile << "v = 2000\n";
-//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//         outputFile << "SNR = " << SNR << " pb = " << pb_Q_BSC(k0, 5, w2_5, 0.5, SNR) << "\n";
-//     }
-//     outputFile << "v = 2001\n";
-//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//         outputFile << "SNR = " << SNR << " pb = " << pe_Q_BSC(L, 5, w2_5_pe, 0.5, SNR) << "\n";
-//     }
+    //     }
+    // }
+    // outputFile << "v = 1\n";
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) <= 1) {
+    //         outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+    //     }
+    // }
+
+    // outputFile << "v = 2\n";
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pb_Q_BSC(k0, 5, w2_5, 0.5, SNR) <= 1) {
+    //         outputFile << "SNR = " << SNR << " pb = " << pb_Q_BSC(k0, 5, w2_5, 0.5, SNR) << "\n";
+    //     }
+    // }
+    // outputFile << "v = 3\n";
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pe_Q_BSC(L, 5, w2_5_pe, 0.5, SNR) <= 1) {
+    //         outputFile << "SNR = " << SNR << " pb = " << pe_Q_BSC(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+    //     }
+    // }
+    // 
+//////////////////////////
 
     // outputFile << "v = 210\n";
     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
