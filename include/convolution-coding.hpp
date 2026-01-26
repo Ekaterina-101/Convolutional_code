@@ -23,3 +23,4 @@ typedef struct {
 
 std::vector<int> conv75_encode(std::vector<int>& input_bits);
 std::vector<int> conv75_viterbi_decode(std::vector<int>& demodulated_signal);
+std::vector<int> conv75_soft_decode(std::vector<double>& encoded);

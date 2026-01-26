@@ -19,3 +19,6 @@ std::vector<int> QAM64demod(const std::vector<std::complex<double>>& input_signa
 
 std::vector<std::complex<double>> QAM256mod(const std::vector<int>& input_bits);
 std::vector<int> QAM256demod(const std::vector<std::complex<double>>& input_signal);
+
+std::vector<double> QPSKdemod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR);
+std::vector<double> BPSKdemod_LLR(const std::vector<double>& input_signal, double SNR);
