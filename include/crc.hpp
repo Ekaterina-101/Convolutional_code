@@ -9,7 +9,7 @@ private:
     uint8_t polynomial;
 
 public:
-    CRC8(uint8_t poly = 0x07);
+    CRC8(int poly = 0b110011011);
     uint8_t calculate(const std::vector<int>& data);
 
     std::vector<int> encodeCRC(const std::vector<int>& data);
@@ -24,7 +24,7 @@ private:
     uint16_t polynomial;
 
 public:
-    CRC16(uint16_t poly = 0x1021);
+    CRC16(uint32_t poly = 0b10001000000100001);
     uint16_t calculate(const std::vector<int>& data);
 
     std::vector<int> encodeCRC(const std::vector<int>& data);
@@ -39,7 +39,7 @@ private:
     uint32_t polynomial;
 
 public:
-    CRC24(uint32_t poly = 0x864CFB);
+    CRC24(uint32_t poly = 0b1100000000000000001100011);
     uint32_t calculate(const std::vector<int>& data);
 
     std::vector<int> encodeCRC(const std::vector<int>& data);

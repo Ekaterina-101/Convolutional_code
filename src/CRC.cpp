@@ -1,8 +1,9 @@
 #include "crc.hpp"
+#include <iostream>
 
 //========================================  8  ========================================
 
-CRC8::CRC8(uint8_t poly) : polynomial(poly) {}
+CRC8::CRC8(int poly) : polynomial(poly) {}
 
 uint8_t CRC8::calculate(const std::vector<int>& data) {
     uint8_t crc = 0;
@@ -22,7 +23,7 @@ uint8_t CRC8::calculate(const std::vector<int>& data) {
 
     return crc;
 }
-    
+
 std::vector<int> CRC8::encodeCRC(const std::vector<int>& data) {
     std::vector<int> encoded = data;
     uint8_t crc_value = calculate(data);
@@ -135,7 +136,7 @@ bool CRC8::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_
 
 // ================================  16  =============================================
 
-CRC16::CRC16(uint16_t poly) : polynomial(poly) {}
+CRC16::CRC16(uint32_t poly) : polynomial(poly) {}
 
 uint16_t CRC16::calculate(const std::vector<int>& data) {
     uint16_t crc = 0;
@@ -158,7 +159,7 @@ uint16_t CRC16::calculate(const std::vector<int>& data) {
 
 std::vector<int> CRC16::encodeCRC(const std::vector<int>& data) {
     std::vector<int> encoded = data;
-    uint16_t crc_value = calculate(data);
+    uint32_t crc_value = calculate(data);
 
     int crc_hi = static_cast<int>((crc_value >> 8) & 0xFF);
     int crc_lo = static_cast<int>(crc_value & 0xFF);
@@ -460,3 +461,41 @@ bool CRC24::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block
 
     return true;
 }
+
+// #include <iostream>
+// #include <vector>
+// #include <cstdint>
+
+// template <typename CRC, typename T>
+// void testCRC(const char* name, CRC& crc, const std::vector<int>& data, int crc_bytes) {
+//     T value = crc.calculate(data);
+
+//     std::vector<int> encoded = data;
+
+//     for (int i = crc_bytes - 1; i >= 0; --i) {
+//         encoded.push_back((value >> (8 * i)) & 0xFF);
+//     }
+
+//     T remainder = crc.calculate(encoded);
+
+//     std::cout << name << ": ";
+//     if (remainder == 0)
+//         std::cout << "OK";
+//     else
+//         std::cout << "ERROR";
+//     std::cout << std::endl;
+// }
+
+// int main() {
+//     std::vector<int> message = {0x99, 0x25};
+
+//     CRC8  crc8;
+//     CRC16 crc16;
+//     CRC24 crc24;
+
+//     testCRC<CRC8,  uint8_t >("CRC-8 ",  crc8,  message, 1);
+//     testCRC<CRC16, uint16_t>("CRC-16",  crc16, message, 2);
+//     testCRC<CRC24, uint32_t>("CRC-24",  crc24, message, 3);
+
+//     return 0;
+// }
