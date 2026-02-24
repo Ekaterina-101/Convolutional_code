@@ -1,6 +1,4 @@
 #include "convolution-coding.hpp"
-#include <vector>
-#include <stdexcept>
 
 std::vector<int> conv75_encode(std::vector<int>& input_bits) {
     input_bits.push_back(0);
