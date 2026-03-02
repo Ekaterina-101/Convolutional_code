@@ -5,7 +5,7 @@ std::vector<std::complex<double>> AWGN_Q(double SNR, std::vector<std::complex<do
 
     std::random_device rd;
     std::mt19937 gen(rd());
-    double delte = std::sqrt(b/2.0);
+    double delte = std::sqrt(b);
     std::normal_distribution<double> dist(0.0, 1.0);
 
     std::vector<std::complex<double>> res = word;
