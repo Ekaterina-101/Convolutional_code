@@ -11,13 +11,16 @@ const int hamming_distance[8][8] = {
     {3, 2, 2, 1, 2, 1, 1, 0},
 };
 
-std::vector<int> hard_viterbi_decode(std::vector<int>& encoded, trellis75& T) {
+std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded) {
     const int R = std::log2(T.numOutputSymbols);
     const int N = T.numStates;
     size_t length = encoded.size() / R;
+
     std::vector<int> output(length);
+
+    std::vector<int> state_metric(N, INT_MAX);
+    state_metric[0] = 0;
     
-    int state_metric[N] {};
     std::vector<std::vector<int>> tb_state(N, std::vector<int>(length));
     std::vector<std::vector<int>> tb_input(N, std::vector<int>(length));
 
@@ -47,9 +50,7 @@ std::vector<int> hard_viterbi_decode(std::vector<int>& encoded, trellis75& T) {
             }
         }
 
-        for (int s = 0; s < N; s++) {
-            state_metric[s] = temp_metric[s];
-        }
+        state_metric = temp_metric;
     }
 
     int state = 0;
@@ -61,18 +62,21 @@ std::vector<int> hard_viterbi_decode(std::vector<int>& encoded, trellis75& T) {
     return output;
 }
 
-std::vector<int> soft_viterbi_decode(std::vector<double>& encoded, trellis75& T) {
+std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& encoded) {
     const int R = std::log2(T.numOutputSymbols);
     const int N = T.numStates;
     size_t length = encoded.size() / R;
+
     std::vector<int> output(length);
 
-    double state_metric[N] {};
+    std::vector<double> state_metric(N, std::numeric_limits<double>::infinity());
+    state_metric[0] = 0.0;
+
     std::vector<std::vector<int>> tb_state(N, std::vector<int>(length));
     std::vector<std::vector<int>> tb_input(N, std::vector<int>(length));
 
     for (int i = 0; i < length; i++) {
-        std::vector<double> temp_metric(N, INT_MAX);
+        std::vector<double> temp_metric(N, std::numeric_limits<double>::infinity());
 
         for (int curr_state = 0; curr_state < N; curr_state++) {
             double curr_metric = state_metric[curr_state];
@@ -90,16 +94,13 @@ std::vector<int> soft_viterbi_decode(std::vector<double>& encoded, trellis75& T)
                 
                 if (new_metric < temp_metric[next_state]) {
                     temp_metric[next_state] = new_metric;
-                    
                     tb_state[next_state][i] = curr_state;
                     tb_input[next_state][i] = input;
                 }
             }
         }
-        
-        for (int s = 0; s < N; s++) {
-            state_metric[s] = temp_metric[s];
-        }
+    
+        state_metric = temp_metric;
     }
     
     int state = 0;

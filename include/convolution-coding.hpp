@@ -1,3 +1,4 @@
+#include "universal-trellis.hpp"
 #include <cstdint>
 #include <vector>
 #include <cmath>
@@ -29,5 +30,6 @@ std::vector<int> conv75_encode(std::vector<int>& input_bits);
 std::vector<int> conv75_viterbi_decode(std::vector<int>& demodulated_signal);
 std::vector<int> conv75_soft_decode(std::vector<double>& encoded);
 
-std::vector<int> hard_viterbi_decode(std::vector<int>& encoded, trellis75& T);
-std::vector<int> soft_viterbi_decode(std::vector<double>& encoded, trellis75& T);
+std::vector<int> conv_encode(const Trellis& T, std::vector<int>& input_bits);
+std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded);
+std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& encoded);

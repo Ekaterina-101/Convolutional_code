@@ -1,24 +1,18 @@
-#pragma once
-
-#include <cstdint>
 #include <vector>
-#include <stdexcept>
+#include <cstdint>
 
 struct Trellis {
-    uint8_t k = 1;
-    uint8_t n = 0;
-    uint8_t K = 0;
-    uint32_t numStates = 0;
+    const int k = 1;
+    const int numInputSymbols = 2;
 
-    uint8_t numInputSymbols = 2;
-    uint32_t numOutputSymbols = 0;
+    int n = 0;
+    int numOutputSymbols = 0;
 
-    std::vector<uint32_t> generators;
+    int K = 0;
+    int numStates = 0;
 
     std::vector<std::vector<uint32_t>> nextStates;
     std::vector<std::vector<uint32_t>> outputs;
 };
 
-uint32_t octal_to_mask(uint32_t oct);
-
-Trellis build_trellis_k1(uint8_t K, const std::vector<uint32_t>& generators);
+Trellis build_trellis(const std::vector<uint32_t>& generators);
