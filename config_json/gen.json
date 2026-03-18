@@ -1,0 +1,12 @@
+{
+  "output_file": "data/output.txt",
+  "modulation": 4,
+  "trellis_generators": [7, 5],
+  "decode_mode": "soft",
+  "channel": "AWGN",
+  "EbN0_dB_start": 0.0,
+  "EbN0_dB_end": 6.0,
+  "EbN0_dB_step": 0.5,
+  "iteration": 10000,
+  "n": 100
+}

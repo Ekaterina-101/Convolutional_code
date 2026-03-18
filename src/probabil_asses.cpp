@@ -107,10 +107,11 @@ double pe_Q_BSC(int L, int d, std::vector<int>& w, double R, double SNR) {
 }
 
 double pb_D0(int k0, double D0, int df, double R, double SNR) {
-    return (std::pow(D0, 5)/(std::pow(1.0 - 2.0*D0, 2)*double(k0))) / (1.0 / std::sqrt(2.0 * M_PI * double(df) * R * (std::pow(10, SNR/10.0))));
+    return (std::pow(D0, 5)/(std::pow(1.0 - 2.0*D0, 2)*double(k0))) / (std::sqrt(2.0 * M_PI * double(df) * R * (std::pow(10, SNR/10.0))));
 }
+
 double pe_D0(int L, double D0, int df, double R, double SNR) {
-    return (double(L) * std::pow(D0, 5) / (1.0 - 2.0 * D0)) / (1.0 / std::sqrt(2.0 * M_PI * double(df) * R * (std::pow(10, SNR/10.0))));
+    return (double(L) * std::pow(D0, 5) / (1.0 - 2.0 * D0)) / (std::sqrt(2.0 * M_PI * double(df) * R * (std::pow(10, SNR/10.0))));
 }
 
 double D0_BSC(double p) {
@@ -122,7 +123,7 @@ double D0_AWGN(double SNR, double R) {
 }
 
 
-double pb_Bit_Om(int k0, double D0, int df, double R, double SNR) {
+double pb_Vit_Om(int k0, double D0, int df, double R, double SNR) {
     return Q(std::sqrt(2.0 * df * (std::pow(10, SNR/10.0)) * R)) * std::exp((std::pow(10, SNR/10.0)) * R * df) * (std::pow(D0, 5)/(std::pow(1.0 - 2.0*D0, 2)*double(k0)));
 }
 double pe_Bit_Om(int L, double D0, int df, double R, double SNR) {
@@ -155,6 +156,16 @@ double pb_BSC(int k0, int d, std::vector<int>& w, double p) {
     return p_/double(k0);
 }
 
+double pb_BSC_2(int n, double p) {
+    double p_ = 0.0;
+
+    for (int j = 2; j <= n; j++) {
+        p_ += j * binomialCoefficient(n, j) * std::pow(p, j) * pow((1.0 - p), n - j);
+    }
+
+    return p_/double(n);
+}
+
 // int main() {
 //     std::ofstream outputFile("pb_teor_my.txt");
     
@@ -166,58 +177,102 @@ double pb_BSC(int k0, int d, std::vector<int>& w, double p) {
 //     std::vector<int> w2_5 = {1, 4, 12, 32, 80};
 //     std::vector<int> w2_5_pe = {1, 2, 4, 8, 16};
 
-//     double SNR0 = 0;
-//     double SNR_step = 0.1;
-//     double SNR_max = 15;
+//     double SNR0 = 2.0;
+//     double SNR_step = 0.5;
+//     double SNR_max = 20.0;
 //     int k0 = 1;
 //     int L = 500;
 //     // outputFile << "v = 0\n";
-//     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//     //     if (pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) <= 1000000) {
-//     //         outputFile << "SNR = " << SNR << " pb = " << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
-
-//     //     }
-//     // }
-
-//     // outputFile << "v = 1\n";
-//     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//     //     if (pb_D0(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 100000) {
-//     //         outputFile << "SNR = " << SNR << " pb = " << pb_D0(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
-
-//     //     }
-//     // }
-
-//     // outputFile << "v = 2\n";
-//     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//     //     if (pb_Bit_Om(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 100000) {
-//     //         outputFile << "SNR = " << SNR << " pb = " << pb_Bit_Om(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
-
-//     //     }
-//     // }
-//     ////////////
-
-//     // outputFile << "v = 2\n";
-//     std::cout << "FER(teor)" << "\n";
-//     for (int p = 0; p <= 50; p+=1) {
-//         if (pe_BSC(L, 5, w2_5_pe, p/100.0) <= 100000) {
-//             std::cout << "1 - p = " << 1.0 -  p/100.0 << " FER = " << pe_BSC(L, 5, w2_5_pe, p/100.0) << "\n";
+//     outputFile << "\n#----- AWGN BER teor Q----- " << std::endl;
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         if (pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) <= 1) {
+//             outputFile << "SNR = " << SNR << " pb = " << std::scientific << pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) << "\n";
 
 //         }
 //     }
-//     std::cout << "BER(teor)" << "\n";
-//     for (int p = 0; p <= 50; p+=1) {
-//         if (pb_BSC(k0, 5, w2_5, p/100.0) <= 100000) {
-//             std::cout << "1 - p = " << 1.0 - p/100.0 << " BER = " << pb_BSC(k0, 5, w2_5, p/100.0) << "\n";
+
+//     // outputFile << "v = 1\n";
+//     outputFile << "\n#----- AWGN BER teor approxi----- " << std::endl;
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         if (pb_D0(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 1) {
+//             outputFile << "SNR = " << SNR << " pb = " << std::scientific << pb_D0(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
 
 //         }
 //     }
-//     // outputFile << "v = 1\n";
-//     // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
-//     //     if (pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) <= 1) {
-//     //         outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
 
-//     //     }
-//     // }
+//     // outputFile << "v = 2\n";
+//     outputFile << "\n#----- AWGN BER teor Viterbi----- " << std::endl;
+//     for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+//         if (pb_Bit_Om(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 1) {
+//             outputFile << "SNR = " << SNR << " pb = " << std::scientific << pb_Bit_Om(k0, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
+
+//         }
+//     }
+
+    // outputFile << "\n#----- AWGN FER teor Q----- " << std::endl;
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) <= 1000000) {
+    //         outputFile << "SNR = " << SNR << " pb = " << std::scientific << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+
+    //     }
+    // }
+
+    // // outputFile << "v = 1\n";
+    // outputFile << "\n#----- AWGN FER teor approxi----- " << std::endl;
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pe_D0(L, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 100000) {
+    //         outputFile << "SNR = " << SNR << " pb = " << std::scientific << pe_D0(L, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
+
+    //     }
+    // }
+
+    // // outputFile << "v = 2\n";
+    // outputFile << "\n#----- AWGN FER teor Viterbi----- " << std::endl;
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pe_Bit_Om(L, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) <= 100000) {
+    //         outputFile << "SNR = " << SNR << " pb = " << std::scientific << pe_Bit_Om(L, D0_AWGN(SNR, 0.5), 5, 0.5, SNR) << "\n";
+
+    //     }
+    // }
+    ////////////
+
+    // outputFile << "v = 2\n";
+    // std::cout << "FER(teor)" << "\n";
+    // for (int p = 0; p <= 50; p+=1) {
+    //     if (pe_BSC(L, 5, w2_5_pe, p/100.0) <= 100000) {
+    //         std::cout << "1 - p = " << 1.0 -  p/100.0 << " FER = " << pe_BSC(L, 5, w2_5_pe, p/100.0) << "\n";
+
+    //     }
+    // }
+    // outputFile << "\n#----- BSC BER teor Viterbi----- " << std::endl;
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pb_BSC(k0, 5, w2_5, p_SNR_BSC(0.5, SNR)) <= 100000) {
+    //         outputFile << "SNR = " << SNR << " pb = " << std::scientific << pb_BSC(k0, 5, w2_5, p_SNR_BSC(0.5, SNR)) << "\n";
+
+    //     }
+    // }
+    // outputFile << "\n#----- BSC BER teor----- " << std::endl;
+    // for (int p = 0; p <= 50; p += 1) {
+    //     if (pe_BSC(L, 5, w2_5_pe, p/100.0) <= 100000) {
+    //         outputFile << "SNR = " << 1.0  - p/100.0 << " pb = " << std::scientific << pb_BSC(k0, 5, w2_5, p/100.0) << "\n";
+
+    //     }
+    // }
+    // std::cout << "BER(teor)" << "\n";
+    // outputFile << "\n#----- BSC BER teor 2----- " << std::endl;
+    // for (int p = 0; p <= 50; p+=1) {
+    //     if (pb_BSC_2(10000000, p/100.0) <= 100000) {
+    //         std::cout << "1 - p = " << 1.0 - p/100.0 << " BER = " << pb_BSC_2(10000000, p/100.0) << "\n";
+
+    //     }
+    // }
+    // outputFile << "v = 1\n";
+    // for (double SNR = SNR0; SNR <= SNR_max; SNR += SNR_step) {
+    //     if (pb_Q_AWGN(k0, 5, w2_5, 0.5, SNR) <= 1) {
+    //         outputFile << "SNR = " << SNR << " pb = " << pe_Q_AWGN(L, 5, w2_5_pe, 0.5, SNR) << "\n";
+
+    //     }
+    // }
 
 
 

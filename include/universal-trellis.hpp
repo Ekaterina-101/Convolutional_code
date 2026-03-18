@@ -2,8 +2,8 @@
 #include <cstdint>
 
 struct Trellis {
-    const int k = 1;
-    const int numInputSymbols = 2;
+    int k = 1;
+    int numInputSymbols = 2;
 
     int n = 0;
     int numOutputSymbols = 0;

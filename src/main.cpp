@@ -1,29 +1,33 @@
-#include "crc.hpp"
-#include "modem.hpp"
-#include "noise.hpp"
-#include "convolution-coding.hpp"
 
-void printResult(int N, std::vector<int>& input_signal, std::vector<int>& output_signal, double param) {
-    int count_err_bit = 0;
-    for (int i = 0; i < input_signal.size(); i++) {
-        if (input_signal[i] != output_signal[i]) {
-            count_err_bit++;
-        }
-    }
-    std::cout << std::fixed << std::setprecision(1) << 
-    "SNR = " << param << std::fixed << std::setprecision(N - 1) << 
-    " pb = " << double(count_err_bit)/input_signal.size() << std::endl;
-}
+#include "config.hpp"
 
-std::vector<int> generate_random_vector(size_t size) {
-    std::vector<int> random_vector;
-    srand(time(0));
-    int i = 0;
-    while (i++ < size) {
-        int random_bit = rand() % 2;
-        random_vector.push_back(random_bit);
-    }
-    return random_vector;
+// void printResult(int N, std::vector<int>& input_signal, std::vector<int>& output_signal, double param) {
+//     int count_err_bit = 0;
+//     for (int i = 0; i < input_signal.size(); i++) {
+//         if (input_signal[i] != output_signal[i]) {
+//             count_err_bit++;
+//         }
+//     }
+//     std::cout << std::fixed << std::setprecision(1) << 
+//     "SNR = " << param << std::fixed << std::setprecision(N - 1) << 
+//     " pb = " << double(count_err_bit)/input_signal.size() << std::endl;
+// }
+
+// std::vector<int> generate_random_vector(size_t size) {
+//     std::vector<int> random_vector;
+//     srand(time(0));
+//     int i = 0;
+//     while (i++ < size) {
+//         int random_bit = rand() % 2;
+//         random_vector.push_back(random_bit);
+//     }
+//     return random_vector;
+// }
+
+int main() {
+    Comm_system_config c("config_json/gen.json");
+    c.calculate_pe_AWGN();
+    c.calculate_pb_AWGN();
 }
 
 // int main() {
