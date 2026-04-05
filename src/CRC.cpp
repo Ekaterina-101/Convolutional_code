@@ -1,44 +1,79 @@
-#include "crc.hpp"
-#include <iostream>
+#include "../include/crc.hpp"
 
-//========================================  8  ========================================
+// ==================================== CRC8 ====================================
 
-CRC8::CRC8(int poly) : polynomial(poly) {}
+CRC8::CRC8(uint16_t poly) : polynomial(poly) {}
+
+std::vector<int> CRC8::getPolynomialBits() const {
+    std::vector<int> bits;
+    for (int i = CRC_BITS; i >= 0; --i) {
+        bits.push_back((polynomial >> i) & 1);
+    }
+    return bits;
+}
+
+void CRC8::appendBits(std::vector<int>& dst, uint32_t value, int bit_count) {
+    for (int i = bit_count - 1; i >= 0; --i) {
+        dst.push_back((value >> i) & 1);
+    }
+}
 
 uint8_t CRC8::calculate(const std::vector<int>& data) {
-    uint8_t crc = 0;
+    std::vector<int> temp = data;
 
-    for (int byte_val : data) {
-        uint8_t byte = static_cast<uint8_t>(byte_val & 0xFF);
-        crc ^= byte;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        temp.push_back(0);
+    }
 
-        for (int i = 0; i < 8; i++) {
-            if (crc & 0x80) {
-                crc = (crc << 1) ^ polynomial;
-            } else {
-                crc <<= 1;
+    std::vector<int> poly_bits = getPolynomialBits();
+
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
             }
         }
     }
 
-    return crc;
+    uint8_t remainder = 0;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        remainder = static_cast<uint8_t>(remainder << 1);
+        remainder = static_cast<uint8_t>(remainder | temp[temp.size() - CRC_BITS + i]);
+    }
+
+    return remainder;
 }
 
 std::vector<int> CRC8::encodeCRC(const std::vector<int>& data) {
     std::vector<int> encoded = data;
-    uint8_t crc_value = calculate(data);
-    encoded.push_back(static_cast<int>(crc_value));
-
+    uint8_t crc = calculate(data);
+    appendBits(encoded, crc, CRC_BITS);
     return encoded;
 }
-    
-bool CRC8::decodeCRC(const std::vector<int>& encoded_data) {
-    std::vector<int> data(encoded_data.begin(), encoded_data.end() - 1);
-    uint8_t received_crc = static_cast<uint8_t>(encoded_data.back() & 0xFF);
-    uint8_t calculated_crc = calculate(data);
 
-    bool match = (calculated_crc == received_crc);
-    return match;
+bool CRC8::decodeCRC(const std::vector<int>& encoded_data) {
+    if (encoded_data.size() < CRC_BITS) {
+        return false;
+    }
+
+    std::vector<int> temp = encoded_data;
+    std::vector<int> poly_bits = getPolynomialBits();
+
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
+            }
+        }
+    }
+
+    for (std::size_t i = temp.size() - CRC_BITS; i < temp.size(); ++i) {
+        if (temp[i] != 0) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 std::vector<int> CRC8::encodeBlocks(const std::vector<int>& data, std::size_t block_size) {
@@ -49,31 +84,16 @@ std::vector<int> CRC8::encodeBlocks(const std::vector<int>& data, std::size_t bl
     }
 
     std::size_t i = 0;
-    std::size_t n = data.size();
-
-    while (i < n) {
-        std::size_t remaining = n - i;
+    while (i < data.size()) {
         std::size_t current_block_size = block_size;
-
-        if (remaining < block_size) {
-            current_block_size = remaining;
+        if (i + current_block_size > data.size()) {
+            current_block_size = data.size() - i;
         }
 
-        std::vector<int> block;
-        block.reserve(current_block_size);
+        std::vector<int> block(data.begin() + i, data.begin() + i + current_block_size);
+        std::vector<int> encoded_block = encodeCRC(block);
 
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            block.push_back(data[i + j] & 0xFF);
-        }
-
-        uint8_t crc_value = calculate(block);
-
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            result.push_back(block[j]);
-        }
-
-        result.push_back(static_cast<int>(crc_value));
-
+        result.insert(result.end(), encoded_block.begin(), encoded_block.end());
         i += current_block_size;
     }
 
@@ -88,103 +108,107 @@ bool CRC8::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_
     }
 
     std::size_t i = 0;
-    std::size_t n = encoded_data.size();
-    const std::size_t crc_len = 1;
+    while (i < encoded_data.size()) {
+        std::size_t remaining = encoded_data.size() - i;
 
-    while (i < n) {
-        std::size_t remaining = n - i;
-
-        if (remaining <= crc_len) {
+        if (remaining <= static_cast<std::size_t>(CRC_BITS)) {
             return false;
         }
 
-        std::size_t payload_len;
-
-        if (remaining > block_size + crc_len) {
-            payload_len = block_size;
-        } else {
-            payload_len = remaining - crc_len;
+        std::size_t payload_size = block_size;
+        if (remaining < block_size + CRC_BITS) {
+            payload_size = remaining - CRC_BITS;
         }
 
-        if (payload_len == 0) {
+        std::size_t encoded_block_size = payload_size + CRC_BITS;
+
+        std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
+
+        if (!decodeCRC(block)) {
             return false;
         }
 
-        std::vector<int> block;
-        block.reserve(payload_len);
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            block.push_back(encoded_data[i + j] & 0xFF);
-        }
-
-        uint8_t received_crc = static_cast<uint8_t>(encoded_data[i + payload_len] & 0xFF);
-        uint8_t calculated_crc = calculate(block);
-
-        if (calculated_crc != received_crc) {
-            return false;
-        }
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            decoded_data.push_back(block[j]);
-        }
-
-        i += payload_len + crc_len;
+        decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
+        i += encoded_block_size;
     }
 
     return true;
 }
 
-// ================================  16  =============================================
+// ==================================== CRC16 ====================================
 
 CRC16::CRC16(uint32_t poly) : polynomial(poly) {}
 
+std::vector<int> CRC16::getPolynomialBits() const {
+    std::vector<int> bits;
+    for (int i = CRC_BITS; i >= 0; --i) {
+        bits.push_back((polynomial >> i) & 1);
+    }
+    return bits;
+}
+
+void CRC16::appendBits(std::vector<int>& dst, uint32_t value, int bit_count) {
+    for (int i = bit_count - 1; i >= 0; --i) {
+        dst.push_back((value >> i) & 1);
+    }
+}
+
 uint16_t CRC16::calculate(const std::vector<int>& data) {
-    uint16_t crc = 0;
+    std::vector<int> temp = data;
 
-    for (int byte_val : data) {
-        uint8_t byte = static_cast<uint8_t>(byte_val & 0xFF);
-        crc ^= static_cast<uint16_t>(byte) << 8;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        temp.push_back(0);
+    }
 
-        for (int i = 0; i < 8; i++) {
-            if ((crc & 0x8000) != 0) {
-                crc = static_cast<uint16_t>((crc << 1) ^ polynomial);
-            } else {
-                crc = static_cast<uint16_t>(crc << 1);
+    std::vector<int> poly_bits = getPolynomialBits();
+
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
             }
         }
     }
 
-    return crc;
+    uint16_t remainder = 0;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        remainder = static_cast<uint16_t>(remainder << 1);
+        remainder = static_cast<uint16_t>(remainder | temp[temp.size() - CRC_BITS + i]);
+    }
+
+    return remainder;
 }
 
 std::vector<int> CRC16::encodeCRC(const std::vector<int>& data) {
     std::vector<int> encoded = data;
-    uint32_t crc_value = calculate(data);
-
-    int crc_hi = static_cast<int>((crc_value >> 8) & 0xFF);
-    int crc_lo = static_cast<int>(crc_value & 0xFF);
-
-    encoded.push_back(crc_hi);
-    encoded.push_back(crc_lo);
-
+    uint16_t crc = calculate(data);
+    appendBits(encoded, crc, CRC_BITS);
     return encoded;
 }
 
 bool CRC16::decodeCRC(const std::vector<int>& encoded_data) {
-    if (encoded_data.size() < 2) {
+    if (encoded_data.size() < CRC_BITS) {
         return false;
     }
 
-    std::vector<int> data(encoded_data.begin(), encoded_data.end() - 2);
+    std::vector<int> temp = encoded_data;
+    std::vector<int> poly_bits = getPolynomialBits();
 
-    int crc_hi_int = encoded_data[encoded_data.size() - 2] & 0xFF;
-    int crc_lo_int = encoded_data[encoded_data.size() - 1] & 0xFF;
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
+            }
+        }
+    }
 
-    uint16_t received_crc = static_cast<uint16_t>((crc_hi_int << 8) | crc_lo_int);
-    uint16_t calculated_crc = calculate(data);
+    for (std::size_t i = temp.size() - CRC_BITS; i < temp.size(); ++i) {
+        if (temp[i] != 0) {
+            return false;
+        }
+    }
 
-    bool match = (calculated_crc == received_crc);
-    return match;
+    return true;
 }
 
 std::vector<int> CRC16::encodeBlocks(const std::vector<int>& data, std::size_t block_size) {
@@ -195,35 +219,16 @@ std::vector<int> CRC16::encodeBlocks(const std::vector<int>& data, std::size_t b
     }
 
     std::size_t i = 0;
-    std::size_t n = data.size();
-
-    while (i < n) {
-        std::size_t remaining = n - i;
+    while (i < data.size()) {
         std::size_t current_block_size = block_size;
-
-        if (remaining < block_size) {
-            current_block_size = remaining;
+        if (i + current_block_size > data.size()) {
+            current_block_size = data.size() - i;
         }
 
-        std::vector<int> block;
-        block.reserve(current_block_size);
+        std::vector<int> block(data.begin() + i, data.begin() + i + current_block_size);
+        std::vector<int> encoded_block = encodeCRC(block);
 
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            block.push_back(data[i + j] & 0xFF);
-        }
-
-        uint16_t crc_value = calculate(block);
-
-        int crc_hi = static_cast<int>((crc_value >> 8) & 0xFF);
-        int crc_lo = static_cast<int>(crc_value & 0xFF);
-
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            result.push_back(block[j]);
-        }
-
-        result.push_back(crc_hi);
-        result.push_back(crc_lo);
-
+        result.insert(result.end(), encoded_block.begin(), encoded_block.end());
         i += current_block_size;
     }
 
@@ -238,119 +243,107 @@ bool CRC16::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block
     }
 
     std::size_t i = 0;
-    std::size_t n = encoded_data.size();
-    const std::size_t crc_len = 2;
+    while (i < encoded_data.size()) {
+        std::size_t remaining = encoded_data.size() - i;
 
-    while (i < n) {
-        std::size_t remaining = n - i;
-
-        if (remaining <= crc_len) {
+        if (remaining <= static_cast<std::size_t>(CRC_BITS)) {
             return false;
         }
 
-        std::size_t payload_len;
-
-        if (remaining > block_size + crc_len) {
-            payload_len = block_size;
-        } else {
-            payload_len = remaining - crc_len;
+        std::size_t payload_size = block_size;
+        if (remaining < block_size + CRC_BITS) {
+            payload_size = remaining - CRC_BITS;
         }
 
-        if (payload_len == 0) {
+        std::size_t encoded_block_size = payload_size + CRC_BITS;
+
+        std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
+
+        if (!decodeCRC(block)) {
             return false;
         }
 
-        std::vector<int> block;
-        block.reserve(payload_len);
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            block.push_back(encoded_data[i + j] & 0xFF);
-        }
-
-        int crc_hi_int = encoded_data[i + payload_len] & 0xFF;
-        int crc_lo_int = encoded_data[i + payload_len + 1] & 0xFF;
-
-        uint16_t received_crc =
-            static_cast<uint16_t>((crc_hi_int << 8) | crc_lo_int);
-
-        uint16_t calculated_crc = calculate(block);
-
-        if (calculated_crc != received_crc) {
-            return false;
-        }
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            decoded_data.push_back(block[j]);
-        }
-
-        i += payload_len + crc_len;
+        decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
+        i += encoded_block_size;
     }
 
     return true;
 }
 
-// ======================================  24  ========================================
+// ==================================== CRC24 ====================================
 
-CRC24::CRC24(uint32_t poly) : polynomial(poly & 0xFFFFFFu) {}
+CRC24::CRC24(uint32_t poly) : polynomial(poly) {}
+
+std::vector<int> CRC24::getPolynomialBits() const {
+    std::vector<int> bits;
+    for (int i = CRC_BITS; i >= 0; --i) {
+        bits.push_back((polynomial >> i) & 1);
+    }
+    return bits;
+}
+
+void CRC24::appendBits(std::vector<int>& dst, uint32_t value, int bit_count) {
+    for (int i = bit_count - 1; i >= 0; --i) {
+        dst.push_back((value >> i) & 1);
+    }
+}
 
 uint32_t CRC24::calculate(const std::vector<int>& data) {
-    uint32_t crc = 0;
+    std::vector<int> temp = data;
 
-    for (int byte_val : data) {
-        uint8_t byte = static_cast<uint8_t>(byte_val & 0xFF);
-        crc ^= static_cast<uint32_t>(byte) << 16;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        temp.push_back(0);
+    }
 
-        for (int i = 0; i < 8; i++) {
-            if ((crc & 0x800000u) != 0) {
-                crc = (crc << 1) ^ polynomial;
-            } else {
-                crc = crc << 1;
+    std::vector<int> poly_bits = getPolynomialBits();
+
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
             }
-            crc &= 0xFFFFFFu;
         }
     }
 
-    crc &= 0xFFFFFFu;
-    return crc;
+    uint32_t remainder = 0;
+    for (int i = 0; i < CRC_BITS; ++i) {
+        remainder = remainder << 1;
+        remainder = remainder | static_cast<uint32_t>(temp[temp.size() - CRC_BITS + i]);
+    }
+
+    return remainder;
 }
 
 std::vector<int> CRC24::encodeCRC(const std::vector<int>& data) {
     std::vector<int> encoded = data;
-    uint32_t crc_value = calculate(data) & 0xFFFFFFu;
-
-    int crc_b2 = static_cast<int>((crc_value >> 16) & 0xFF);
-    int crc_b1 = static_cast<int>((crc_value >> 8) & 0xFF);
-    int crc_b0 = static_cast<int>(crc_value & 0xFF);
-
-    encoded.push_back(crc_b2);
-    encoded.push_back(crc_b1);
-    encoded.push_back(crc_b0);
-
+    uint32_t crc = calculate(data);
+    appendBits(encoded, crc, CRC_BITS);
     return encoded;
 }
 
 bool CRC24::decodeCRC(const std::vector<int>& encoded_data) {
-    if (encoded_data.size() < 3) {
+    if (encoded_data.size() < CRC_BITS) {
         return false;
     }
 
-    std::vector<int> data(encoded_data.begin(), encoded_data.end() - 3);
+    std::vector<int> temp = encoded_data;
+    std::vector<int> poly_bits = getPolynomialBits();
 
-    int crc_b2_int = encoded_data[encoded_data.size() - 3] & 0xFF;
-    int crc_b1_int = encoded_data[encoded_data.size() - 2] & 0xFF;
-    int crc_b0_int = encoded_data[encoded_data.size() - 1] & 0xFF;
+    for (std::size_t i = 0; i + CRC_BITS < temp.size(); ++i) {
+        if (temp[i] == 1) {
+            for (int j = 0; j <= CRC_BITS; ++j) {
+                temp[i + j] ^= poly_bits[j];
+            }
+        }
+    }
 
-    uint32_t received_crc =
-        (static_cast<uint32_t>(crc_b2_int) << 16) |
-        (static_cast<uint32_t>(crc_b1_int) << 8)  |
-        static_cast<uint32_t>(crc_b0_int);
+    for (std::size_t i = temp.size() - CRC_BITS; i < temp.size(); ++i) {
+        if (temp[i] != 0) {
+            return false;
+        }
+    }
 
-    received_crc &= 0xFFFFFFu;
-
-    uint32_t calculated_crc = calculate(data) & 0xFFFFFFu;
-
-    bool match = (calculated_crc == received_crc);
-    return match;
+    return true;
 }
 
 std::vector<int> CRC24::encodeBlocks(const std::vector<int>& data, std::size_t block_size) {
@@ -361,37 +354,16 @@ std::vector<int> CRC24::encodeBlocks(const std::vector<int>& data, std::size_t b
     }
 
     std::size_t i = 0;
-    std::size_t n = data.size();
-
-    while (i < n) {
-        std::size_t remaining = n - i;
+    while (i < data.size()) {
         std::size_t current_block_size = block_size;
-
-        if (remaining < block_size) {
-            current_block_size = remaining;
+        if (i + current_block_size > data.size()) {
+            current_block_size = data.size() - i;
         }
 
-        std::vector<int> block;
-        block.reserve(current_block_size);
+        std::vector<int> block(data.begin() + i, data.begin() + i + current_block_size);
+        std::vector<int> encoded_block = encodeCRC(block);
 
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            block.push_back(data[i + j] & 0xFF);
-        }
-
-        uint32_t crc_value = calculate(block) & 0xFFFFFFu;
-
-        int crc_b2 = static_cast<int>((crc_value >> 16) & 0xFF);
-        int crc_b1 = static_cast<int>((crc_value >> 8) & 0xFF);
-        int crc_b0 = static_cast<int>(crc_value & 0xFF);
-
-        for (std::size_t j = 0; j < current_block_size; j++) {
-            result.push_back(block[j]);
-        }
-
-        result.push_back(crc_b2);
-        result.push_back(crc_b1);
-        result.push_back(crc_b0);
-
+        result.insert(result.end(), encoded_block.begin(), encoded_block.end());
         i += current_block_size;
     }
 
@@ -406,96 +378,29 @@ bool CRC24::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block
     }
 
     std::size_t i = 0;
-    std::size_t n = encoded_data.size();
-    const std::size_t crc_len = 3;
+    while (i < encoded_data.size()) {
+        std::size_t remaining = encoded_data.size() - i;
 
-    while (i < n) {
-        std::size_t remaining = n - i;
-
-        if (remaining <= crc_len) {
+        if (remaining <= static_cast<std::size_t>(CRC_BITS)) {
             return false;
         }
 
-        std::size_t payload_len;
-
-        if (remaining > block_size + crc_len) {
-            payload_len = block_size;
-        } else {
-            payload_len = remaining - crc_len;
+        std::size_t payload_size = block_size;
+        if (remaining < block_size + CRC_BITS) {
+            payload_size = remaining - CRC_BITS;
         }
 
-        if (payload_len == 0) {
+        std::size_t encoded_block_size = payload_size + CRC_BITS;
+
+        std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
+
+        if (!decodeCRC(block)) {
             return false;
         }
 
-        std::vector<int> block;
-        block.reserve(payload_len);
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            block.push_back(encoded_data[i + j] & 0xFF);
-        }
-
-        int crc_b2_int = encoded_data[i + payload_len]     & 0xFF;
-        int crc_b1_int = encoded_data[i + payload_len + 1] & 0xFF;
-        int crc_b0_int = encoded_data[i + payload_len + 2] & 0xFF;
-
-        uint32_t received_crc =
-            (static_cast<uint32_t>(crc_b2_int) << 16) |
-            (static_cast<uint32_t>(crc_b1_int) << 8)  |
-            static_cast<uint32_t>(crc_b0_int);
-
-        received_crc &= 0xFFFFFFu;
-
-        uint32_t calculated_crc = calculate(block) & 0xFFFFFFu;
-
-        if (calculated_crc != received_crc) {
-            return false;
-        }
-
-        for (std::size_t j = 0; j < payload_len; j++) {
-            decoded_data.push_back(block[j]);
-        }
-
-        i += payload_len + crc_len;
+        decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
+        i += encoded_block_size;
     }
 
     return true;
 }
-
-// #include <iostream>
-// #include <vector>
-// #include <cstdint>
-
-// template <typename CRC, typename T>
-// void testCRC(const char* name, CRC& crc, const std::vector<int>& data, int crc_bytes) {
-//     T value = crc.calculate(data);
-
-//     std::vector<int> encoded = data;
-
-//     for (int i = crc_bytes - 1; i >= 0; --i) {
-//         encoded.push_back((value >> (8 * i)) & 0xFF);
-//     }
-
-//     T remainder = crc.calculate(encoded);
-
-//     std::cout << name << ": ";
-//     if (remainder == 0)
-//         std::cout << "OK";
-//     else
-//         std::cout << "ERROR";
-//     std::cout << std::endl;
-// }
-
-// int main() {
-//     std::vector<int> message = {0x99, 0x25};
-
-//     CRC8  crc8;
-//     CRC16 crc16;
-//     CRC24 crc24;
-
-//     testCRC<CRC8,  uint8_t >("CRC-8 ",  crc8,  message, 1);
-//     testCRC<CRC16, uint16_t>("CRC-16",  crc16, message, 2);
-//     testCRC<CRC24, uint32_t>("CRC-24",  crc24, message, 3);
-
-//     return 0;
-// }

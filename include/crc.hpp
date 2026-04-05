@@ -1,17 +1,20 @@
+#pragma once
 #include <cstdint>
 #include <vector>
-#include <bitset>
-#include <iomanip>
-
+#include <cstddef>
 
 class CRC8 {
 private:
-    uint8_t polynomial;
+    uint16_t polynomial;
+    static constexpr int CRC_BITS = 8;
+
+    std::vector<int> getPolynomialBits() const;
+    static void appendBits(std::vector<int>& dst, uint32_t value, int bit_count);
 
 public:
-    CRC8(int poly = 0b110011011);
-    uint8_t calculate(const std::vector<int>& data);
+    CRC8(uint16_t poly = 0b110011011);
 
+    uint8_t calculate(const std::vector<int>& data);
     std::vector<int> encodeCRC(const std::vector<int>& data);
     bool decodeCRC(const std::vector<int>& encoded_data);
 
@@ -21,12 +24,16 @@ public:
 
 class CRC16 {
 private:
-    uint16_t polynomial;
+    uint32_t polynomial;
+    static constexpr int CRC_BITS = 16;
+
+    std::vector<int> getPolynomialBits() const;
+    static void appendBits(std::vector<int>& dst, uint32_t value, int bit_count);
 
 public:
     CRC16(uint32_t poly = 0b10001000000100001);
-    uint16_t calculate(const std::vector<int>& data);
 
+    uint16_t calculate(const std::vector<int>& data);
     std::vector<int> encodeCRC(const std::vector<int>& data);
     bool decodeCRC(const std::vector<int>& encoded_data);
 
@@ -37,11 +44,15 @@ public:
 class CRC24 {
 private:
     uint32_t polynomial;
+    static constexpr int CRC_BITS = 24;
+
+    std::vector<int> getPolynomialBits() const;
+    static void appendBits(std::vector<int>& dst, uint32_t value, int bit_count);
 
 public:
     CRC24(uint32_t poly = 0b1100000000000000001100011);
-    uint32_t calculate(const std::vector<int>& data);
 
+    uint32_t calculate(const std::vector<int>& data);
     std::vector<int> encodeCRC(const std::vector<int>& data);
     bool decodeCRC(const std::vector<int>& encoded_data);
 
