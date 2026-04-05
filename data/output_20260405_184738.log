@@ -1,0 +1,6 @@
+Simulation
+Mode: 4, Channel: AWGN, Modulation: 4, Decode: soft
+CRC: 8, k = 100, Generators: {7, 5}
+Eb/N0 = 1.00 dB | Attempts: 1000 | BER = 0.062115 | FER = 0.980000 | bit error = 68389 | frame error = 980 | total bits = 1101000
+Eb/N0 = 1.50 dB | Attempts: 500 | BER = 0.036554 | FER = 1.000000 | bit error = 47539 | frame error = 500 | total bits = 1300500
+Eb/N0 = 3.00 dB | Attempts: 200 | BER = 0.004847 | FER = 1.000000 | bit error = 3200 | frame error = 200 | total bits = 660200
