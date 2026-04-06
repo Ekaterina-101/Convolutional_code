@@ -51,6 +51,7 @@ class Comm_system_config {
     int draw_BER_FER;
 
     std::vector<int> information_word;
+    std::vector<int> information_word_for_crc;
     std::vector<int> code_word;
     std::vector<std::complex<double>> modulation_signal;
     std::vector<std::complex<double>> noised_modulation_signal;

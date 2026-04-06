@@ -67,7 +67,7 @@ def main():
         plt.figure(figsize=(8, 6))
         plt.semilogy(ebno_ber, ber_processed, 'o-', markersize=5, linewidth=1.5)
         plt.xlabel('Отношение сигнал/шум (дБ), Eb/N0')
-        plt.ylabel('BER')
+        plt.ylabel('Вероятность ошибки на бит')
         plt.grid(True, which='both', ls='--', alpha=0.7)
         plt.title('Вероятность ошибки на бит (BER)')
         plt.tight_layout()

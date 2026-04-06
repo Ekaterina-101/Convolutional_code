@@ -1,3 +1,0 @@
-Simulation
-Mode: 5, Channel: AWGN, Modulation: 4, Decode: soft
-CRC: 8, k = 10, Generators: {7, 5}

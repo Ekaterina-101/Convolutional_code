@@ -348,15 +348,16 @@ void Comm_system_config::generate_information_word() {
 }
 
 std::vector<int> &Comm_system_config::coding() {
+    std::vector<int> word_to_encode = information_word;
     if (mode == 5) {
-        CRC_code();
+        word_to_encode = CRC_code();
     }
     // if ((decode_mode.find("WAVA") != std::string::npos)) {
     //     code_word = tail_biting_encode(trellis, information_word);
     // } else {
     //     code_word = conv_encode(trellis, information_word);
     // }
-    code_word = conv_encode(trellis, information_word);
+    code_word = conv_encode(trellis, word_to_encode);
     return code_word;
 }
 
@@ -488,38 +489,41 @@ std::vector<int> &Comm_system_config::decode() {
 }
 
 std::vector<int> Comm_system_config::CRC_code() {
+    information_word_for_crc = information_word;
+
+    std::vector<int> result = information_word;
+
     switch (CRC_polynomial) {
     case 8: {
         CRC8 CRC_;
         if (CRC_block == 0) {
-            information_word = CRC_.encodeCRC(information_word);
+            result = CRC_.encodeCRC(result);
         } else {
-            information_word = CRC_.encodeBlocks(information_word, CRC_block);
+            result = CRC_.encodeBlocks(result, CRC_block);
         }
         break;
     }
     case 16: {
         CRC16 CRC_;
         if (CRC_block == 0) {
-            information_word = CRC_.encodeCRC(information_word);
+            result = CRC_.encodeCRC(result);
         } else {
-            information_word = CRC_.encodeBlocks(information_word, CRC_block);
+            result = CRC_.encodeBlocks(result, CRC_block);
         }
         break;
     }
     case 24: {
         CRC24 CRC_;
         if (CRC_block == 0) {
-            information_word = CRC_.encodeCRC(information_word);
+            result = CRC_.encodeCRC(result);
         } else {
-            information_word = CRC_.encodeBlocks(information_word, CRC_block);
+            result = CRC_.encodeBlocks(result, CRC_block);
         }
         break;
     }
-    default:
-        break;
     }
-    return information_word;
+
+    return result;
 }
 
 void Comm_system_config::run() {
@@ -571,6 +575,7 @@ void Comm_system_config::run() {
     for (std::size_t idx = 0; idx < num_points; ++idx) {
         int num_attempts;
         double current_EbN0 = EbN0_dB[idx];
+
         if (simulation_mode) {
             num_attempts = attempts[idx];
         } else {
@@ -661,7 +666,7 @@ void Comm_system_config::run() {
                     }
                     }
                     CRC_decode.assign(decode_word.begin(),
-                                      decode_word.end() - CRC_polynomial / 8);
+                                      decode_word.end() - CRC_polynomial);
                 } else {
                     switch (CRC_polynomial) {
                     case 8: {
@@ -685,8 +690,13 @@ void Comm_system_config::run() {
                     }
                 }
 
-                for (std::size_t i = 0; i < information_word.size(); ++i) {
-                    if (information_word[i] != CRC_decode[i]) {
+                if (information_word_for_crc.size() != CRC_decode.size()) {
+                    std::cout << "ERROR0_0 " << information_word_for_crc.size()
+                              << " " << CRC_decode.size() << std::endl;
+                }
+                for (std::size_t i = 0; i < information_word_for_crc.size();
+                     ++i) {
+                    if (information_word_for_crc[i] != CRC_decode[i]) {
                         bit_errors++;
                     }
                 }
@@ -713,7 +723,6 @@ void Comm_system_config::run() {
 
         double BER = static_cast<double>(bit_errors) / total_bits;
         double FER = static_cast<double>(frame_errors) / num_attempts;
-
         log_file << std::fixed << std::setprecision(2)
                  << "Eb/N0 = " << current_EbN0 << " dB | "
                  << "Attempts: " << num_attempts << " | "
