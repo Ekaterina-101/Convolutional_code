@@ -1,25 +1,31 @@
 {
-  "output_file": "data/output.txt",
+  "output_file": null,
   "CRC_polynomial": 8,
+  "CRC_block": 0,
   "modulation": 4,
-  "information_word": [],
-  "code_word": [],
-  "modulation_signal": [],
-  "noised_modulation_signal": [],
-  "soft_demod_LLR": [],
-  "demod_word": [],
-  "decode_word": [],
-  "trellis_generators": [7, 5],
+  "k": 100,
+  "information_word": 1,
+  "mode": 4,
+  "trellis_generators": [
+    7,
+    5
+  ],
   "decode_mode": "soft",
+  "WAVA_max_iter": 3,
+  "LVA_L": 5,
   "channel": "AWGN",
-  "EbN0_dB": 0.0,
-  "EbN0_dB_start": 0.0,
-  "EbN0_dB_end": 6.0,
-  "EbN0_dB_step": 0.5,
-  "p": 0.0,
-  "p_start": 0.0,
-  "p_end": 1.0,
-  "p_step": 0.5,
-  "iteration": 10000,
-  "n": 100
+  "channel_seed": 12345,
+  "EbN0_dB": [
+    1.0,
+    1.5,
+    2.0
+  ],
+  "attempts": [
+    10,
+    500,
+    200
+  ],
+  "simulation_mode": 0,
+  "write_output_BER/FER_file": 1,
+  "draw_BER/FER": 1
 }
