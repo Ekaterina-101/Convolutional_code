@@ -100,12 +100,18 @@ std::vector<int> CRC8::encodeBlocks(const std::vector<int>& data, std::size_t bl
     return result;
 }
 
-bool CRC8::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data) {
+bool CRC8::decodeBlocks(const std::vector<int>& encoded_data,
+                        std::size_t block_size,
+                        std::vector<int>& decoded_data,
+                        std::vector<bool>& block_status) {
     decoded_data.clear();
+    block_status.clear();
 
     if (block_size == 0) {
         return false;
     }
+
+    bool all_ok = true;
 
     std::size_t i = 0;
     while (i < encoded_data.size()) {
@@ -124,15 +130,18 @@ bool CRC8::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_
 
         std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
 
-        if (!decodeCRC(block)) {
-            return false;
+        bool ok = decodeCRC(block);
+        block_status.push_back(ok);
+
+        if (!ok) {
+            all_ok = false;
         }
 
         decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
         i += encoded_block_size;
     }
 
-    return true;
+    return all_ok;
 }
 
 // ==================================== CRC16 ====================================
@@ -235,12 +244,18 @@ std::vector<int> CRC16::encodeBlocks(const std::vector<int>& data, std::size_t b
     return result;
 }
 
-bool CRC16::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data) {
+bool CRC16::decodeBlocks(const std::vector<int>& encoded_data,
+                         std::size_t block_size,
+                         std::vector<int>& decoded_data,
+                         std::vector<bool>& block_status) {
     decoded_data.clear();
+    block_status.clear();
 
     if (block_size == 0) {
         return false;
     }
+
+    bool all_ok = true;
 
     std::size_t i = 0;
     while (i < encoded_data.size()) {
@@ -257,17 +272,24 @@ bool CRC16::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block
 
         std::size_t encoded_block_size = payload_size + CRC_BITS;
 
-        std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
+        std::vector<int> block(encoded_data.begin() + i,
+                               encoded_data.begin() + i + encoded_block_size);
 
-        if (!decodeCRC(block)) {
-            return false;
+        bool ok = decodeCRC(block);
+        block_status.push_back(ok);
+
+        if (!ok) {
+            all_ok = false;
         }
 
-        decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
+        decoded_data.insert(decoded_data.end(),
+                            block.begin(),
+                            block.begin() + payload_size);
+
         i += encoded_block_size;
     }
 
-    return true;
+    return all_ok;
 }
 
 // ==================================== CRC24 ====================================
@@ -370,12 +392,18 @@ std::vector<int> CRC24::encodeBlocks(const std::vector<int>& data, std::size_t b
     return result;
 }
 
-bool CRC24::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data) {
+bool CRC24::decodeBlocks(const std::vector<int>& encoded_data,
+                         std::size_t block_size,
+                         std::vector<int>& decoded_data,
+                         std::vector<bool>& block_status) {
     decoded_data.clear();
+    block_status.clear();
 
     if (block_size == 0) {
         return false;
     }
+
+    bool all_ok = true;
 
     std::size_t i = 0;
     while (i < encoded_data.size()) {
@@ -392,15 +420,22 @@ bool CRC24::decodeBlocks(const std::vector<int>& encoded_data, std::size_t block
 
         std::size_t encoded_block_size = payload_size + CRC_BITS;
 
-        std::vector<int> block(encoded_data.begin() + i, encoded_data.begin() + i + encoded_block_size);
+        std::vector<int> block(encoded_data.begin() + i,
+                               encoded_data.begin() + i + encoded_block_size);
 
-        if (!decodeCRC(block)) {
-            return false;
+        bool ok = decodeCRC(block);
+        block_status.push_back(ok);
+
+        if (!ok) {
+            all_ok = false;
         }
 
-        decoded_data.insert(decoded_data.end(), block.begin(), block.begin() + payload_size);
+        decoded_data.insert(decoded_data.end(),
+                            block.begin(),
+                            block.begin() + payload_size);
+
         i += encoded_block_size;
     }
 
-    return true;
+    return all_ok;
 }

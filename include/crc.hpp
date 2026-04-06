@@ -19,7 +19,7 @@ public:
     bool decodeCRC(const std::vector<int>& encoded_data);
 
     std::vector<int> encodeBlocks(const std::vector<int>& data, std::size_t block_size);
-    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data);
+    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data, std::vector<bool>& block_status);
 };
 
 class CRC16 {
@@ -38,7 +38,7 @@ public:
     bool decodeCRC(const std::vector<int>& encoded_data);
 
     std::vector<int> encodeBlocks(const std::vector<int>& data, std::size_t block_size);
-    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data);
+    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data, std::vector<bool>& block_status);
 };
 
 class CRC24 {
@@ -57,5 +57,5 @@ public:
     bool decodeCRC(const std::vector<int>& encoded_data);
 
     std::vector<int> encodeBlocks(const std::vector<int>& data, std::size_t block_size);
-    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data);
+    bool decodeBlocks(const std::vector<int>& encoded_data, std::size_t block_size, std::vector<int>& decoded_data, std::vector<bool>& block_status);
 };
