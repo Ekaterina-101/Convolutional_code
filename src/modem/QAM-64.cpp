@@ -65,7 +65,7 @@ std::vector<int> QAM64demod(const std::vector<std::complex<double>>& input_signa
     return output_bits;
 }
 
-std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR) {
+std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR, double R) {
     size_t length = input_signal.size();
     std::vector<double> output_bits(length * 6);
 
@@ -101,7 +101,7 @@ std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>>& inpu
         }
 
         for (int b = 0; b < 6; b++) {
-            output_bits[6 * i + b] = calculateLLR(SNR, min_dist[b][0] - min_dist[b][1]);
+            output_bits[6 * i + b] = calculateLLR(SNR, min_dist[b][0] - min_dist[b][1], R, 64);
         }
     }
 

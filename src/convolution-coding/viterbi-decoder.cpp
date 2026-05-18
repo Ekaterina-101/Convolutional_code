@@ -1,18 +1,7 @@
 #include "convolution-coding.hpp"
 
-const int hamming_distance[8][8] = {
-    {0, 1, 1, 2, 1, 2, 2, 3},
-    {1, 0, 2, 1, 2, 1, 3, 2},
-    {1, 2, 0, 1, 2, 3, 1, 2},
-    {2, 1, 1, 0, 3, 2, 2, 1},
-    {1, 2, 2, 3, 0, 1, 1, 2},
-    {2, 1, 3, 2, 1, 0, 2, 1},
-    {2, 3, 1, 2, 1, 2, 0, 1},
-    {3, 2, 2, 1, 2, 1, 1, 0},
-};
-
 std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded) {
-    const int R = std::log2(T.numOutputSymbols);
+    const int R = T.n;
     const int N = T.numStates;
     size_t length = encoded.size() / R;
 
@@ -35,11 +24,15 @@ std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded
         for (int curr_state = 0; curr_state < N; curr_state++) {
             int curr_metric = state_metric[curr_state];
 
+            if (curr_metric == INT_MAX) {
+                continue;
+            }
+
             for (int input = 0; input < 2; input++) {
                 int next_state = T.nextStates[curr_state][input];
                 int output_symbol = T.outputs[curr_state][input];
-                
-                int new_metric = curr_metric + hamming_distance[received_symbol][output_symbol];
+
+                int new_metric = curr_metric + __builtin_popcount(received_symbol ^ output_symbol);
                 
                 if (new_metric < temp_metric[next_state]) {
                     temp_metric[next_state] = new_metric;
@@ -63,7 +56,7 @@ std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded
 }
 
 std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& encoded) {
-    const int R = std::log2(T.numOutputSymbols);
+    const int R = T.n;
     const int N = T.numStates;
     size_t length = encoded.size() / R;
 
@@ -81,11 +74,15 @@ std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& enco
         for (int curr_state = 0; curr_state < N; curr_state++) {
             double curr_metric = state_metric[curr_state];
 
+            if (curr_metric == std::numeric_limits<double>::infinity()) {
+                continue;
+            }
+
             for (int input = 0; input < 2; input++) {
                 int next_state = T.nextStates[curr_state][input];
                 int output_symbol = T.outputs[curr_state][input];
 
-                double correlation = 0;
+                double correlation = 0.0;
                 for (int c = 0; c < R; c++) {
                     int bit = (output_symbol >> (R - c - 1)) & 1;
                     correlation += (1 - 2 * bit) * encoded[R * i + c];

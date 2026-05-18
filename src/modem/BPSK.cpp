@@ -26,13 +26,29 @@ std::vector<int> BPSKdemod(const std::vector<double>& input_signal) {
     return output_bits;
 }
 
-std::vector<double> BPSKdemod_LLR(const std::vector<double>& input_signal, double SNR) {
-    size_t length = input_signal.size();
-    std::vector<double> output_bits(length);
+std::vector<double> BPSKdemod_LLR(const std::vector<double>& input_signal, double SNR, double R) {
+    double SNR_linear = std::pow(10.0, SNR/10.0);
+    double noise_variance = 1.0 / (2.0 * SNR_linear * R);
 
-    for (size_t i = 0; i < length; i++) {
-        output_bits[i] = input_signal[i] * 4.0 * std::pow(10.0, SNR/10.0);
+    std::vector<double> llr(input_signal.size());
+
+    for (size_t i = 0; i < input_signal.size(); i++) {
+        llr[i] = 2.0 * input_signal[i] / noise_variance;
     }
 
-    return output_bits;
+    return llr;
+}
+
+std::vector<double> BPSKdemod_LLR_Rayleigh(const std::vector<double>& input_signal, const std::vector<double>& fading_mu, double SNR, double R) {
+    size_t length = input_signal.size();
+    std::vector<double> llr(length);
+    
+    double SNR_lin = std::pow(10.0, SNR / 10.0);
+    double noise_variance = 1.0 / (2.0 * SNR_lin * R);
+    
+    for (size_t i = 0; i < length; i++) {
+        llr[i] = 2.0 * fading_mu[i] * input_signal[i] / noise_variance;
+    }
+    
+    return llr;
 }

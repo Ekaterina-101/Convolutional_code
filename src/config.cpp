@@ -399,26 +399,28 @@ Comm_system_config::noise(double current_EbN0_dB) {
 }
 
 std::vector<double> &Comm_system_config::soft_demod(double current_EbN0_dB) {
+    double code_speed_R = 1.0 / trellis_generators.size();
+
     switch (modulation) {
     case 4:
         soft_demod_LLR =
-            QPSKdemod_LLR(noised_modulation_signal, current_EbN0_dB);
+            QPSKdemod_LLR(noised_modulation_signal, current_EbN0_dB, code_speed_R);
         break;
     case 16:
         soft_demod_LLR =
-            QAM16demod_LLR(noised_modulation_signal, current_EbN0_dB);
+            QAM16demod_LLR(noised_modulation_signal, current_EbN0_dB, code_speed_R);
         break;
     case 64:
         soft_demod_LLR =
-            QAM64demod_LLR(noised_modulation_signal, current_EbN0_dB);
+            QAM64demod_LLR(noised_modulation_signal, current_EbN0_dB, code_speed_R);
         break;
     case 256:
         soft_demod_LLR =
-            QAM256demod_LLR(noised_modulation_signal, current_EbN0_dB);
+            QAM256demod_LLR(noised_modulation_signal, current_EbN0_dB, code_speed_R);
         break;
     default:
         soft_demod_LLR =
-            QPSKdemod_LLR(noised_modulation_signal, current_EbN0_dB);
+            QPSKdemod_LLR(noised_modulation_signal, current_EbN0_dB, code_speed_R);
         break;
     }
     return soft_demod_LLR;
@@ -668,23 +670,25 @@ void Comm_system_config::run() {
                     CRC_decode.assign(decode_word.begin(),
                                       decode_word.end() - CRC_polynomial);
                 } else {
+                    std::vector<bool> CRC_status;
+
                     switch (CRC_polynomial) {
                     case 8: {
                         CRC8 crc;
                         CRC_check = crc.decodeBlocks(decode_word, CRC_block,
-                                                     CRC_decode);
+                                                     CRC_decode, CRC_status);
                         break;
                     }
                     case 16: {
                         CRC16 crc;
                         CRC_check = crc.decodeBlocks(decode_word, CRC_block,
-                                                     CRC_decode);
+                                                     CRC_decode, CRC_status);
                         break;
                     }
                     case 24: {
                         CRC24 crc;
                         CRC_check = crc.decodeBlocks(decode_word, CRC_block,
-                                                     CRC_decode);
+                                                     CRC_decode, CRC_status);
                         break;
                     }
                     }

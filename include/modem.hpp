@@ -17,9 +17,9 @@ std::vector<int> QAM16demod(const std::vector<std::complex<double>>& input_signa
 std::vector<int> QAM64demod(const std::vector<std::complex<double>>& input_signal);
 std::vector<int> QAM256demod(const std::vector<std::complex<double>>& input_signal);
 
-double calculateLLR(double SNR_dB, double min_dist_difference);
-std::vector<double> BPSKdemod_LLR(const std::vector<double>& input_signal, double SNR);
-std::vector<double> QPSKdemod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR);
-std::vector<double> QAM16demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR);
-std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR);
-std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR);
+double calculateLLR(double SNR_dB, double min_dist_difference, double R, double M);
+std::vector<double> BPSKdemod_LLR(const std::vector<double>& input_signal, double SNR_dB, double R);
+std::vector<double> QPSKdemod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR_dB, double R);
+std::vector<double> QAM16demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR_dB, double R);
+std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR_dB, double R);
+std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR_dB, double R);

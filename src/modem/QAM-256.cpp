@@ -74,7 +74,7 @@ std::vector<int> QAM256demod(const std::vector<std::complex<double>>& input_sign
 }
 
 
-std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR) {
+std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>>& input_signal, double SNR, double R) {
     size_t length = input_signal.size();
     std::vector<double> output_bits(length * 8);
     
@@ -114,7 +114,7 @@ std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>>& inp
         }
         
         for (int b = 0; b < 8; b++) {
-            output_bits[8 * i + b] = calculateLLR(SNR, min_dist[b][0] - min_dist[b][1]);
+            output_bits[8 * i + b] = calculateLLR(SNR, min_dist[b][0] - min_dist[b][1], R, 256);
         }
     }
 
