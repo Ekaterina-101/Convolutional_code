@@ -52,13 +52,14 @@ class Comm_system_config {
 
     std::vector<int> information_word;
     std::vector<int> information_word_for_crc;
+    std::vector<double> mu_noise;
     std::vector<int> code_word;
     std::vector<std::complex<double>> modulation_signal;
     std::vector<std::complex<double>> noised_modulation_signal;
     std::vector<double> soft_demod_LLR;
     std::vector<int> demod_word;
     std::vector<int> decode_word;
-    std::vector<std::vector<int>> decode_word_LVA;
+    std::vector<std::vector<int>> decode_words_list;
 
     void validate() const;
     void generate_information_word();
@@ -126,12 +127,10 @@ class Comm_system_config {
     void run();
 };
 
-std::vector<int> generate_random_vector(std::size_t size);
-void print_result(int N, std::vector<int> &input_signal,
-                  std::vector<int> &output_signal, double param);
+std::vector<int> generate_random_vector(std::mt19937 &rng, std::size_t size);
+void print_result(int N, std::vector<int> &input_signal, std::vector<int> &output_signal, double param);
 void print_vector(const std::vector<int> &vec, std::ostream &file);
 void print_vector(const std::vector<double> &vec, std::ostream &file);
-void print_complex_vector_compact(const std::vector<std::complex<double>> &vec,
-                                  std::ostream &file);
+void print_complex_vector_compact(const std::vector<std::complex<double>> &vec, std::ostream &file);
 
 #endif // COMM_SYSTEM_CONFIG_HPP

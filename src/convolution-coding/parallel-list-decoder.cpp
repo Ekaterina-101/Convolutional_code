@@ -1,6 +1,7 @@
 #include "convolution-coding.hpp"
+#include "crc.hpp"
 
-std::vector<std::vector<int>> hard_parallel_lva(const Trellis &T, std::vector<int>& encoded, int L) {
+std::vector<std::vector<int>> hard_parallel_lva(const Trellis &T, std::vector<int> &encoded, int L) {
     const int R = T.n;
     const int N = T.numStates;
     const size_t length = encoded.size() / R;
@@ -91,16 +92,16 @@ std::vector<std::vector<int>> hard_parallel_lva(const Trellis &T, std::vector<in
             result[k][i] = tb_input[state][rank][i];
 
             int prev_state = tb_state[state][rank][i];
-            int prev_rank  = tb_rank[state][rank][i];  // переходим к рангу l* предыдущего шага (γ_t)
+            int prev_rank = tb_rank[state][rank][i]; // переходим к рангу l* предыдущего шага (γ_t)
             state = prev_state;
-            rank  = prev_rank;
+            rank = prev_rank;
         }
     }
 
     return result;
 }
 
-std::vector<std::vector<int>> soft_parallel_lva(const Trellis &T, std::vector<double>& encoded, int L) {
+std::vector<std::vector<int>> soft_parallel_lva(const Trellis &T, std::vector<double> &encoded, int L) {
     const int R = T.n;
     const int N = T.numStates;
     size_t length = encoded.size() / R;
@@ -180,12 +181,132 @@ std::vector<std::vector<int>> soft_parallel_lva(const Trellis &T, std::vector<do
             result[k][i] = tb_input[state][rank][i];
 
             int prev_state = tb_state[state][rank][i];
-            int prev_rank  = tb_rank[state][rank][i];
+            int prev_rank = tb_rank[state][rank][i];
 
             state = prev_state;
-            rank  = prev_rank;
+            rank = prev_rank;
         }
     }
-    
+
     return result;
+}
+
+std::vector<int> soft_parallel_lva_final(const Trellis &T, std::vector<double> &encoded, int L, int CRC, int size_block_CRC) {
+    auto res = soft_parallel_lva(T, encoded, L);
+    std::vector<bool> CRC_status;
+    std::vector<int> decode_CRC;
+    for (std::vector<int> word : res) {
+        if (size_block_CRC != 0) {
+            switch (CRC) {
+            case 8: {
+                CRC8 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            case 16: {
+                CRC16 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            case 24: {
+                CRC24 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            }
+        } else {
+            std::vector<int> CRC_decode;
+
+            switch (CRC) {
+            case 8: {
+                CRC8 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            case 16: {
+                CRC16 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            case 24: {
+                CRC24 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            }
+        }
+    }
+    return res[0];
+}
+
+std::vector<int> hard_parallel_lva_final(const Trellis &T, std::vector<int> &encoded, int L, int CRC, int size_block_CRC) {
+    auto res = hard_parallel_lva(T, encoded, L);
+    std::vector<bool> CRC_status;
+    std::vector<int> decode_CRC;
+    for (std::vector<int> word : res) {
+        if (size_block_CRC != 0) {
+            switch (CRC) {
+            case 8: {
+                CRC8 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            case 16: {
+                CRC16 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            case 24: {
+                CRC24 crc;
+                if (crc.decodeBlocks(word, size_block_CRC, decode_CRC, CRC_status)) {
+                    return word;
+                }
+                break;
+            }
+            }
+        } else {
+            std::vector<int> CRC_decode;
+
+            switch (CRC) {
+            case 8: {
+                CRC8 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            case 16: {
+                CRC16 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            case 24: {
+                CRC24 crc;
+                if (crc.decodeCRC(word)) {
+                    return word;
+                }
+                break;
+            }
+            }
+        }
+    }
+    return res[0];
 }

@@ -1,6 +1,6 @@
 #include "convolution-coding.hpp"
 
-std::vector<int> conv_encode(const Trellis& T, std::vector<int>& input_bits) {
+std::vector<int> conv_encode(const Trellis &T, std::vector<int> &input_bits) {
     for (int i = 0; i < T.K - 1; i++) {
         input_bits.push_back(0);
     }

@@ -1,11 +1,11 @@
 {
   "output_file": null,
-  "CRC_polynomial": 8,
+  "CRC_polynomial": 16,
   "CRC_block": 0,
   "modulation": 4,
   "k": 100,
   "information_word": 1,
-  "mode": 4,
+  "mode": 5,
   "trellis_generators": [
     7,
     5
@@ -21,11 +21,11 @@
     2.0
   ],
   "attempts": [
-    10,
+    100,
     500,
     200
   ],
-  "simulation_mode": 0,
+  "simulation_mode": 1,
   "write_output_BER/FER_file": 1,
   "draw_BER/FER": 1
 }

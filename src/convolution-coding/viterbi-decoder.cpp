@@ -1,6 +1,6 @@
 #include "convolution-coding.hpp"
 
-std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded) {
+std::vector<int> hard_viterbi_decode(const Trellis &T, const std::vector<int> &encoded) {
     const int R = T.n;
     const int N = T.numStates;
     size_t length = encoded.size() / R;
@@ -9,7 +9,7 @@ std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded
 
     std::vector<int> state_metric(N, INT_MAX);
     state_metric[0] = 0;
-    
+
     std::vector<std::vector<int>> tb_state(N, std::vector<int>(length));
     std::vector<std::vector<int>> tb_input(N, std::vector<int>(length));
 
@@ -33,10 +33,10 @@ std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded
                 int output_symbol = T.outputs[curr_state][input];
 
                 int new_metric = curr_metric + __builtin_popcount(received_symbol ^ output_symbol);
-                
+
                 if (new_metric < temp_metric[next_state]) {
                     temp_metric[next_state] = new_metric;
-                    
+
                     tb_state[next_state][i] = curr_state;
                     tb_input[next_state][i] = input;
                 }
@@ -51,11 +51,11 @@ std::vector<int> hard_viterbi_decode(const Trellis &T, std::vector<int>& encoded
         output[i] = tb_input[state][i];
         state = tb_state[state][i];
     }
-    
+
     return output;
 }
 
-std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& encoded) {
+std::vector<int> soft_viterbi_decode(const Trellis &T, const std::vector<double> &encoded) {
     const int R = T.n;
     const int N = T.numStates;
     size_t length = encoded.size() / R;
@@ -88,7 +88,7 @@ std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& enco
                     correlation += (1 - 2 * bit) * encoded[R * i + c];
                 }
                 double new_metric = curr_metric - correlation;
-                
+
                 if (new_metric < temp_metric[next_state]) {
                     temp_metric[next_state] = new_metric;
                     tb_state[next_state][i] = curr_state;
@@ -96,15 +96,15 @@ std::vector<int> soft_viterbi_decode(const Trellis &T, std::vector<double>& enco
                 }
             }
         }
-    
+
         state_metric = temp_metric;
     }
-    
+
     int state = 0;
     for (int i = length - 1; i >= 0; i--) {
         output[i] = tb_input[state][i];
         state = tb_state[state][i];
     }
-    
+
     return output;
 }
