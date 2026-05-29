@@ -24,6 +24,7 @@ std::vector<double> QAM16demod_LLR(const std::vector<std::complex<double>> &inpu
 std::vector<double> QAM64demod_LLR(const std::vector<std::complex<double>> &input_signal, double SNR_dB, double R);
 std::vector<double> QAM256demod_LLR(const std::vector<std::complex<double>> &input_signal, double SNR_dB, double R);
 
+double calculateLLR_Rayleigh(double SNR_dB, double min_dist_difference, double R, double M);
 std::vector<double> BPSKdemod_LLR_Rayleigh(const std::vector<double> &input_signal, const std::vector<double> &fading_mu, double SNR, double R);
 std::vector<double> BPSKdemod_LLR_Rayleigh_NSI(const std::vector<double> &input_signal, double SNR, double R);
 std::vector<double> QPSKdemod_LLR_Rayleigh(const std::vector<std::complex<double>> &input_signal, const std::vector<double> &fading_mu, double SNR, double R);

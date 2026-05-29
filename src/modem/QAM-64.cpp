@@ -144,7 +144,7 @@ std::vector<double> QAM64demod_LLR_Rayleigh(const std::vector<std::complex<doubl
         }
 
         for (int b = 0; b < 6; b++) {
-            output_bits[6 * i + b] = calculateLLR(SNR, min_dist[b][0] - min_dist[b][1], R, 64);
+            output_bits[6 * i + b] = calculateLLR_Rayleigh(SNR, min_dist[b][0] - min_dist[b][1], R, 64);
         }
     }
 

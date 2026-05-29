@@ -127,19 +127,19 @@ std::vector<double> QAM16demod_LLR_Rayleigh(const std::vector<std::complex<doubl
 
         double bit0 = std::min({distances[0], distances[1], distances[2], distances[3], distances[4], distances[5], distances[6], distances[7]});
         double bit1 = std::min({distances[8], distances[9], distances[10], distances[11], distances[12], distances[13], distances[14], distances[15]});
-        output_bits[4 * i] = calculateLLR(SNR, bit0 - bit1, R, 16);
+        output_bits[4 * i] = calculateLLR_Rayleigh(SNR, bit0 - bit1, R, 16);
 
         bit0 = std::min({distances[0], distances[1], distances[2], distances[3], distances[8], distances[9], distances[10], distances[11]});
         bit1 = std::min({distances[4], distances[5], distances[6], distances[7], distances[12], distances[13], distances[14], distances[15]});
-        output_bits[4 * i + 1] = calculateLLR(SNR, bit0 - bit1, R, 16);
+        output_bits[4 * i + 1] = calculateLLR_Rayleigh(SNR, bit0 - bit1, R, 16);
 
         bit0 = std::min({distances[0], distances[1], distances[4], distances[5], distances[8], distances[9], distances[12], distances[13]});
         bit1 = std::min({distances[2], distances[3], distances[6], distances[7], distances[10], distances[11], distances[14], distances[15]});
-        output_bits[4 * i + 2] = calculateLLR(SNR, bit0 - bit1, R, 16);
+        output_bits[4 * i + 2] = calculateLLR_Rayleigh(SNR, bit0 - bit1, R, 16);
 
         bit0 = std::min({distances[0], distances[2], distances[4], distances[6], distances[8], distances[10], distances[12], distances[14]});
         bit1 = std::min({distances[1], distances[3], distances[5], distances[7], distances[9], distances[11], distances[13], distances[15]});
-        output_bits[4 * i + 3] = calculateLLR(SNR, bit0 - bit1, R, 16);
+        output_bits[4 * i + 3] = calculateLLR_Rayleigh(SNR, bit0 - bit1, R, 16);
     }
 
     return output_bits;
